@@ -2,7 +2,7 @@
 using MongoDB.Bson.Serialization.Attributes;
 using System;
 
-namespace DevExpress.Web.Demos.Models
+namespace DXWebApplication1.Models
 {
     public class CompModel
     {

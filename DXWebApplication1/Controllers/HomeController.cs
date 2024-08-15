@@ -4,43 +4,61 @@ using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-using DevExpress.Web.Demos.Models;
+using DXWebApplication1.Models;
 using DevExpress.Web.Mvc;
 using DevExpress.Web.Office;
 using DevExpress.XtraRichEdit;
 using DevExpress.XtraRichEdit.API.Native;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
-namespace DXWebApplication1.Controllers {
-    public class HomeController : Controller {
+namespace DXWebApplication1.Controllers
+{
+    public class HomeController : Controller
+    {
         //
         // GET: /Home/
 
         private readonly MongoDBService _mongoDBService;
         private readonly List<ProjectModel> _projects;
         private readonly List<CompModel> _comps;
+        private static ObjectId selectedProject;
 
         public HomeController()
         {
             _mongoDBService = new MongoDBService();
             _projects = _mongoDBService.GetProjects();
             _comps = _mongoDBService.GetComps();
+            selectedProject = _projects.FirstOrDefault().Id;
         }
 
-        public ActionResult Index() {
-            return View();
+        public ActionResult Index()
+        {
+            return View(_projects);
         }
 
-        public ActionResult RichEditPartial(string actioName = "") {
+        [HttpPost, ValidateInput(false)]
+        public void IndexCallBack([ModelBinder(typeof(DevExpressEditorsBinder))] ProjectOptionModel options)
+        {
+            Console.WriteLine(options.ProjectName);
+        }
+
+        public ActionResult RichEditPartial(string actioName = "")
+        {
             string documentId = "protectedDocumentId";
-            if(actioName == "protectDocumentFields") {
+            if (actioName == "protectDocumentFields")
+            {
 
                 RichEditDocumentServer documentServer = new RichEditDocumentServer();
-                documentServer.CalculateDocumentVariable += (s, e) => {
-                    if(e.VariableName == "SomeField1") {
+                documentServer.CalculateDocumentVariable += (s, e) =>
+                {
+                    if (e.VariableName == "SomeField1")
+                    {
                         e.Value = "CALCULATED FIELD 1";
                         e.Handled = true;
                     }
-                    if(e.VariableName == "SomeField2") {
+                    if (e.VariableName == "SomeField2")
+                    {
                         e.Value = "CALCULATED FIELD 2";
                         e.Handled = true;
                     }
@@ -52,7 +70,8 @@ namespace DXWebApplication1.Controllers {
 
                 ProtectDocvariableFieldsInDocument(document);
 
-                using(MemoryStream stream = new MemoryStream()) {
+                using (MemoryStream stream = new MemoryStream())
+                {
                     documentServer.SaveDocument(stream, DocumentFormat.OpenXml);
                     stream.Position = 0;
 
@@ -60,17 +79,21 @@ namespace DXWebApplication1.Controllers {
                     return RichEditExtension.Open("RichEdit", documentId, DocumentFormat.OpenXml, () => { return stream; });
                 }
             }
-            else if(actioName == "updateProtectedFields") {
+            else if (actioName == "updateProtectedFields")
+            {
                 RichEditDocumentServer documentServer = new RichEditDocumentServer();
-                documentServer.CalculateDocumentVariable += (s, e) => {
-                    if(e.VariableName == "SomeField1") {
+                documentServer.CalculateDocumentVariable += (s, e) =>
+                {
+                    if (e.VariableName == "SomeField1")
+                    {
                         e.Value = "CALCULATED FIELD 1 (UPDATED ON" + DateTime.Now.ToShortTimeString() + ")";
                         e.Handled = true;
                     }
-                    if(e.VariableName == "SomeField2") {
+                    if (e.VariableName == "SomeField2")
+                    {
                         e.Value = "CALCULATED FIELD 2 (UPDATED ON" + DateTime.Now.ToShortTimeString() + ")";
                         e.Handled = true;
-                    }             
+                    }
                 };
 
                 documentServer.LoadDocument(Server.MapPath(@"~/Documents/testDOC.doc"));
@@ -79,7 +102,8 @@ namespace DXWebApplication1.Controllers {
 
                 ProtectDocvariableFieldsInDocument(document);
 
-                using(MemoryStream stream = new MemoryStream()) {
+                using (MemoryStream stream = new MemoryStream())
+                {
                     documentServer.SaveDocument(stream, DocumentFormat.OpenXml);
                     stream.Position = 0;
 
@@ -91,18 +115,22 @@ namespace DXWebApplication1.Controllers {
             return PartialView("_RichEditPartial");
         }
 
-        private void ProtectDocvariableFieldsInDocument(Document document) {
+        private void ProtectDocvariableFieldsInDocument(Document document)
+        {
             DocumentPosition lastNonProtectedPosition = document.Range.Start;
             bool containsProtectedRanges = false;
             RangePermissionCollection rangePermissions = document.BeginUpdateRangePermissions();
-            for(int i = 0; i < document.Fields.Count; i++) {
+            for (int i = 0; i < document.Fields.Count; i++)
+            {
                 Field currentField = document.Fields[i];
                 string fieldCode = document.GetText(currentField.CodeRange);
-                if(fieldCode.Contains("DOCVARIABLE")) {
+                if (fieldCode.Contains("DOCVARIABLE"))
+                {
                     containsProtectedRanges = true;
 
                     rangePermissions.AddRange(CreateRangePermissions(currentField.Range, "Admin", "Admin"));
-                    if(currentField.Range.Start.ToInt() > lastNonProtectedPosition.ToInt()) {
+                    if (currentField.Range.Start.ToInt() > lastNonProtectedPosition.ToInt())
+                    {
                         DocumentRange rangeAfterProtection = document.CreateRange(lastNonProtectedPosition, currentField.Range.Start.ToInt() - lastNonProtectedPosition.ToInt() - 1);
                         rangePermissions.AddRange(CreateRangePermissions(rangeAfterProtection, "User", "User"));
                     }
@@ -110,18 +138,21 @@ namespace DXWebApplication1.Controllers {
                 }
             }
 
-            if(document.Range.End.ToInt() > lastNonProtectedPosition.ToInt()) {
+            if (document.Range.End.ToInt() > lastNonProtectedPosition.ToInt())
+            {
                 DocumentRange rangeAfterProtection = document.CreateRange(lastNonProtectedPosition, document.Range.End.ToInt() - lastNonProtectedPosition.ToInt() - 1);
                 rangePermissions.AddRange(CreateRangePermissions(rangeAfterProtection, "User", "User"));
             }
             document.EndUpdateRangePermissions(rangePermissions);
 
-            if(containsProtectedRanges) {
+            if (containsProtectedRanges)
+            {
                 document.Protect("123");
-            }            
+            }
         }
 
-        private IEnumerable<RangePermission> CreateRangePermissions(DocumentRange documentRange, string groupName, string userName) {
+        private IEnumerable<RangePermission> CreateRangePermissions(DocumentRange documentRange, string groupName, string userName)
+        {
             List<RangePermission> rangeList = new List<RangePermission>();
             RangePermission rp = new RangePermission(documentRange);
             rp.Group = groupName;
@@ -132,6 +163,8 @@ namespace DXWebApplication1.Controllers {
 
         public static void Document_CalculateDocumentVariable(object sender, CalculateDocumentVariableEventArgs e)
         {
+            var controller = new HomeController();
+            var project = controller._projects.Where(x => x.Id == selectedProject).FirstOrDefault();
             switch (e.VariableName)
             {
                 case "TABLE":
@@ -178,45 +211,48 @@ namespace DXWebApplication1.Controllers {
                     doc1.Document.UpdateAllFields();
                     break;
                 case "client_name":
-                    var controller = new HomeController();
-                    var firstProject = controller._projects.FirstOrDefault();
-
-                    e.Value = firstProject.ClientName;
+                    
+                    e.Value = project.ClientName;
                     e.Handled = true;
                     break;
 
                 case "project_name":
-                    var controller1 = new HomeController();
-                    var firstProject1 = controller1._projects.FirstOrDefault();
 
-                    e.Value = firstProject1.ProjectName;
+                    e.Value = project.ProjectName;
                     e.Handled = true;
                     break;
 
                 case "keystone_file_id":
-                    var controller2 = new HomeController();
-                    var firstProject2 = controller2._projects.FirstOrDefault();
 
-                    e.Value = firstProject2.KeyStoneFileId;
+                    e.Value = project.KeyStoneFileId;
                     e.Handled = true;
                     break;
 
                 case "state_registration_id":
-                    var controller3 = new HomeController();
-                    var firstProject3 = controller3._projects.FirstOrDefault();
 
-                    e.Value = firstProject3.StateRegistrationId;
+                    e.Value = project.StateRegistrationId;
                     e.Handled = true;
                     break;
 
                 case "project_address":
-                    var controller4 = new HomeController();
-                    var firstProject4 = controller4._projects.FirstOrDefault();
 
-                    e.Value = firstProject4.ProjectAddress;
+                    e.Value = project.ProjectAddress;
                     e.Handled = true;
                     break;
             }
         }
+
+        [HttpPost]
+        public ActionResult ProjectSelected(InputModel inputModel)
+        {
+            selectedProject = ObjectId.Parse(inputModel.Id);
+
+            return Json(new { success = true, Id = inputModel.Id });
+        }
+    }
+
+    public class InputModel
+    {
+       public string Id { get; set; }
     }
 }

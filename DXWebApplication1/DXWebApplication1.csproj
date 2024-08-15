@@ -283,6 +283,7 @@
     <Content Include="mongocrypt.dll" />
     <Content Include="Scripts\ace.js" />
     <Content Include="Scripts\AjaxLogin.js" />
+    <Content Include="Scripts\CallBackCustomization.js" />
     <Content Include="Scripts\cldr.event.js" />
     <Content Include="Scripts\cldr.js" />
     <Content Include="Scripts\cldr.supplemental.js" />
@@ -344,6 +345,7 @@
     </Compile>
     <Compile Include="Models\CompModel.cs" />
     <Compile Include="Models\ProjectModel.cs" />
+    <Compile Include="Models\ProjectOptionModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\MongoDBService.cs" />
   </ItemGroup>

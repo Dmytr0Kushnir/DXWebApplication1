@@ -1,7 +1,7 @@
 ﻿using MongoDB.Driver;
 using MongoDB.Bson;
 using System.Collections.Generic;
-using DevExpress.Web.Demos.Models;
+using DXWebApplication1.Models;
 
 public class MongoDBService
 {
