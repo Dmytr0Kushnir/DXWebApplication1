@@ -1,0 +1,28 @@
+@using DevExpress.XtraRichEdit;
+@using DevExpress.XtraRichEdit.API.Native;
+@using System.Drawing;
+@using DevExpress.Web.Demos;
+@using System.Web.UI.WebControls;
+@using DXWebApplication1.Controllers;
+
+@Html.DevExpress().RichEdit(settings =>
+{
+    settings.Name = "RichEdit";
+    settings.CallbackRouteValues = new { Controller = "Home", Action = "RichEditPartial" };
+    settings.Width = System.Web.UI.WebControls.Unit.Percentage(100);
+    settings.Height = System.Web.UI.WebControls.Unit.Pixel(800);
+    settings.ReadOnly = false;
+    settings.WorkDirectory = "~\\Documents";
+    settings.RibbonMode = RichEditRibbonMode.Ribbon;
+
+    settings.Settings.Authentication.Group = "User";
+    settings.Settings.Authentication.UserName = "User";
+
+    settings.Settings.Views.ViewType = DevExpress.Web.ASPxRichEdit.RichEditViewType.Simple;
+    settings.CalculateDocumentVariable = (s, e) => HomeController.Document_CalculateDocumentVariable(s, e);
+
+
+    settings.ClientSideEvents.Init = "function(s, e) {onInit(s, e); }"; ;
+
+    //settings.ClientSideEvents.DocumentLoaded = "function(s, e) {onDocumentLoaded(s, e); }";
+}).Open(Server.MapPath("~\\Documents\\TestComp.docx")).GetHtml()
