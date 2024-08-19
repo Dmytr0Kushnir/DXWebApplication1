@@ -10,7 +10,7 @@ namespace DXWebApplication1.Models
         public ObjectId Id { get; set; }
 
         [BsonElement("sale_number")]
-        public string SaleNumber { get; set; }
+        public int SaleNumber { get; set; }
 
         [BsonElement("property_type")]
         public string PropertyType { get; set; }
@@ -25,19 +25,19 @@ namespace DXWebApplication1.Models
         public string Verification { get; set; }
 
         [BsonElement("sale_price")]
-        public string SalePrice { get; set; }
+        public int SalePrice { get; set; }
 
         [BsonElement("sale_date")]
         public string SaleDate { get; set; }
 
         [BsonElement("sq_ft")]
-        public string SqFt { get; set; }
+        public int SqFt { get; set; }
 
         [BsonElement("price_per_sq_ft")]
-        public string PricePerSqFt { get; set; }
+        public int PricePerSqFt { get; set; }
 
         [BsonElement("site_size_acres")]
-        public string SiteSizeAcres { get; set; }
+        public double SiteSizeAcres { get; set; }
 
         [BsonElement("grantor")]
         public string Grantor { get; set; }
@@ -46,7 +46,7 @@ namespace DXWebApplication1.Models
         public string Location { get; set; }
 
         [BsonElement("year_built")]
-        public string YearBuilt { get; set; }
+        public int YearBuilt { get; set; }
 
         [BsonElement("condition")]
         public string Condition { get; set; }
