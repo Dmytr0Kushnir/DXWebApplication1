@@ -8,7 +8,6 @@
     ViewBag.Title = "Index";
 }
 
-<h2>KeyStone</h2>
 <script>
     function OnRichEditControlInit(s, e) {
         RichEdit.commands.updateAllFields.execute();
@@ -40,15 +39,5 @@
     });
 }
 </script>
-
-@Html.DevExpress().ComboBox(settings =>
-{
-    settings.Name = "SelectProject";
-    settings.Properties.ValueType = typeof(ObjectId);
-    settings.Properties.TextField = "ProjectName";
-    settings.Properties.ValueField = "Id";
-    settings.Properties.ClientSideEvents.SelectedIndexChanged = "function(s, e) { onCityChanged(s,e); }";
-}).BindList(Model).Bind(Model).GetHtml()
-
 
 @Html.Action("RichEditPartial")

@@ -29,11 +29,19 @@ namespace DXWebApplication1.Controllers
             _mongoDBService = new MongoDBService();
             _projects = _mongoDBService.GetProjects();
             _comps = _mongoDBService.GetComps();
-            selectedProject = _projects.FirstOrDefault().Id;
         }
 
-        public ActionResult Index()
+        public ActionResult Index(string Id = null)
         {
+            if (Request != null && Request.QueryString["Id"] != null)
+            {
+                string projectId = Request.QueryString["Id"];
+                selectedProject = _projects.Where(x => x.Id.ToString() == projectId).FirstOrDefault().Id;
+            }
+            else
+            {
+                selectedProject = _projects.FirstOrDefault().Id;
+            }
             return View(_projects);
         }
 
@@ -242,12 +250,8 @@ namespace DXWebApplication1.Controllers
             }
         }
 
-        [HttpPost]
-        public ActionResult ProjectSelected(InputModel inputModel)
+        public void ProjectSelected(InputModel inputModel)
         {
-            selectedProject = ObjectId.Parse(inputModel.Id);
-
-            return Json(new { success = true, Id = inputModel.Id });
         }
     }
 
