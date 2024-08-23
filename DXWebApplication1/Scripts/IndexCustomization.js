@@ -7,6 +7,12 @@
         console.log("RichEdit Initialized");
         s.commands.updateAllFields.execute();
     }
+    function OnProtectDocumentClick(s, e) {
+        RichEdit.PerformCallback({ actioName: "protectDocumentFields" });
+    }
 
+    function OnUpdateProtectedFields(s, e) {
+        RichEdit.PerformCallback({ actioName: "updateProtectedFields" });
+    }
     window.onInit = onInit;
     window.onDocumentLoaded = onDocumentLoaded;

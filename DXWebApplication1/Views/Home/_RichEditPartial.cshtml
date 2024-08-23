@@ -18,10 +18,22 @@
     settings.Settings.Authentication.UserName = "User";
 
     settings.Settings.Views.ViewType = DevExpress.Web.ASPxRichEdit.RichEditViewType.Simple;
-    settings.CalculateDocumentVariable = (s, e) => HomeController.Document_CalculateDocumentVariable(s, e);
 
-
+    settings.CalculateDocumentVariable = (send, evargs) =>
+    {
+        MVCxRichEdit richEdit = send as MVCxRichEdit;
+        if (evargs.VariableName == "SomeField1")
+        {
+            evargs.Value = "CALCULATED FIELD 1";
+            evargs.Handled = true;
+        }
+        if (evargs.VariableName == "SomeField2")
+        {
+            evargs.Value = "CALCULATED FIELD 2";
+            evargs.Handled = true;
+        }
+    };
     settings.ClientSideEvents.Init = "function(s, e) {onInit(s, e); }"; ;
 
     //settings.ClientSideEvents.DocumentLoaded = "function(s, e) {onDocumentLoaded(s, e); }";
-}).Open(Server.MapPath("~\\Documents\\TestComp.docx")).GetHtml()
+}).Open(Server.MapPath("~\\Documents\\testDOC1.doc")).GetHtml()

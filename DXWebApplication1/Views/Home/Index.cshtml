@@ -8,36 +8,26 @@
     ViewBag.Title = "Index";
 }
 
-<script>
-    function OnRichEditControlInit(s, e) {
-        RichEdit.commands.updateAllFields.execute();
-    }
+@using (Html.BeginForm())
+{
+    @Html.DevExpress().Button(btnSettings =>
+    {
+        btnSettings.Name = "btnProtect";
+        btnSettings.Text = "Protect Document Fields";
+        btnSettings.ClientSideEvents.Click = "OnProtectDocumentClick";
+    }).GetHtml()
+    @Html.DevExpress().Button(btnSettings =>
+    {
+        btnSettings.Name = "btnUpdateFields";
+        btnSettings.Text = "Update Fields in Protected Ranges";
+        btnSettings.ClientSideEvents.Click = "OnUpdateProtectedFields";
+    }).GetHtml()
+    @Html.DevExpress().Button(btnSettings =>
+    {
+        btnSettings.Name = "btnProtectSection";
+        btnSettings.Text = "Protect Document Section";
+        btnSettings.ClientSideEvents.Click = "OnProtectSection";
+    }).GetHtml()
 
-    function OnProtectDocumentClick(s, e) {
-        RichEdit.PerformCallback({ actioName: "protectDocumentFields" });
-    }
-
-    function OnUpdateProtectedFields(s, e) {
-        RichEdit.PerformCallback({ actioName: "updateProtectedFields" });
-    }
-
-    function onCityChanged(comboBox) {
-    var Id = comboBox.GetValue();
-    $.ajax({
-        url: '@Url.Action("ProjectSelected", "Home")',
-        type: 'POST',
-        data: { Id: Id },
-        success: function (response) {
-            console.log(response);
-            var richEdit = DevExpress.RichEdit.Get("RichEdit"); // Get the Rich Text Editor instance by its ID
-            // Refresh the editor by reloading the current document
-            richEdit.reload(); // This will refresh the editor's content
-        },
-        error: function (xhr, status, error) {
-            console.error("Error: " + error);
-        }
-    });
+    @Html.Action("RichEditPartial")
 }
-</script>
-
-@Html.Action("RichEditPartial")

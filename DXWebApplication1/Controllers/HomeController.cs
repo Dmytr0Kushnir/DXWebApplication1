@@ -249,14 +249,5 @@ namespace DXWebApplication1.Controllers
                     break;
             }
         }
-
-        public void ProjectSelected(InputModel inputModel)
-        {
-        }
-    }
-
-    public class InputModel
-    {
-       public string Id { get; set; }
     }
 }
