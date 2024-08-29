@@ -14,5 +14,10 @@
     function OnUpdateProtectedFields(s, e) {
         RichEdit.PerformCallback({ actioName: "updateProtectedFields" });
     }
+
+    function OnProtectSection(s, e) {
+        RichEdit.PerformCallback({ actioName: "protectSection" });
+    }
+
     window.onInit = onInit;
     window.onDocumentLoaded = onDocumentLoaded;

@@ -72,7 +72,7 @@ namespace DXWebApplication1.Controllers
                     }
                 };
 
-                documentServer.LoadDocument(Server.MapPath(@"~/Documents/testDOC.doc"));
+                documentServer.LoadDocument(Server.MapPath(@"~/Documents/testDOC1.doc"));
 
                 Document document = documentServer.Document;
 
@@ -104,7 +104,7 @@ namespace DXWebApplication1.Controllers
                     }
                 };
 
-                documentServer.LoadDocument(Server.MapPath(@"~/Documents/testDOC.doc"));
+                documentServer.LoadDocument(Server.MapPath(@"~/Documents/testDOC1.doc"));
 
                 Document document = documentServer.Document;
 
@@ -119,15 +119,47 @@ namespace DXWebApplication1.Controllers
                     return RichEditExtension.Open("RichEdit", documentId, DocumentFormat.OpenXml, () => { return stream; });
                 }
             }
+            else if (actioName == "protectSection")
+            {
+                RichEditDocumentServer documentServer = new RichEditDocumentServer();
+                documentServer.CalculateDocumentVariable += (s, e) =>
+                {
+                    if (e.VariableName == "SomeField1")
+                    {
+                        e.Value = "CALCULATED FIELD 1";
+                        e.Handled = true;
+                    }
+                    if (e.VariableName == "SomeField2")
+                    {
+                        e.Value = "CALCULATED FIELD 2";
+                        e.Handled = true;
+                    }
+                };
+
+                documentServer.LoadDocument(Server.MapPath(@"~/Documents/testDOC1.doc"));
+
+                Document document = documentServer.Document;
+
+                ProtectSectionInDocument(document);
+
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    documentServer.SaveDocument(stream, DocumentFormat.OpenXml);
+                    stream.Position = 0;
+
+                    DocumentManager.CloseDocument(documentId);
+                    return RichEditExtension.Open("RichEdit", documentId, DocumentFormat.OpenXml, () => { return stream; });
+                }
+            }
 
             return PartialView("_RichEditPartial");
         }
-
-        private void ProtectDocvariableFieldsInDocument(Document document)
+        public void ProtectDocvariableFieldsInDocument(Document document)
         {
             DocumentPosition lastNonProtectedPosition = document.Range.Start;
             bool containsProtectedRanges = false;
             RangePermissionCollection rangePermissions = document.BeginUpdateRangePermissions();
+
             for (int i = 0; i < document.Fields.Count; i++)
             {
                 Field currentField = document.Fields[i];
@@ -159,7 +191,26 @@ namespace DXWebApplication1.Controllers
             }
         }
 
-        private IEnumerable<RangePermission> CreateRangePermissions(DocumentRange documentRange, string groupName, string userName)
+        public void ProtectSectionInDocument(Document document)
+        {
+             DocumentPosition lastNonProtectedPosition = document.Range.Start;
+             RangePermissionCollection rangePermissions = document.BeginUpdateRangePermissions();
+                
+             Section currentSection = document.Sections[0];
+             DocumentRange sectionRange = currentSection.Range;
+             rangePermissions.AddRange(CreateRangePermissions( sectionRange, "User", "User"));
+             
+
+             Section currentSection1 = document.Sections[1];
+             DocumentRange sectionRange1 = currentSection1.Range;
+             rangePermissions.AddRange(CreateRangePermissions(sectionRange1, "Admin", "Admin"));
+
+            document.EndUpdateRangePermissions(rangePermissions);
+            document.Protect("123");
+        }
+
+        
+        public IEnumerable<RangePermission> CreateRangePermissions(DocumentRange documentRange, string groupName, string userName)
         {
             List<RangePermission> rangeList = new List<RangePermission>();
             RangePermission rp = new RangePermission(documentRange);
