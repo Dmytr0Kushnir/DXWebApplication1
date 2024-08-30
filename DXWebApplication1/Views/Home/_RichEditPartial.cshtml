@@ -1,8 +1,9 @@
-@using DevExpress.XtraRichEdit;
+﻿@using DevExpress.XtraRichEdit;
 @using DevExpress.XtraRichEdit.API.Native;
 @using System.Drawing;
 @using System.Web.UI.WebControls;
 @using DXWebApplication1.Controllers;
+@using DevExpress.Web.Mvc;
 
 @Html.DevExpress().RichEdit(settings =>
 {
@@ -14,11 +15,52 @@
     settings.WorkDirectory = "~\\Documents";
     settings.RibbonMode = RichEditRibbonMode.Ribbon;
 
-    settings.Settings.Authentication.Group = "User";
-    settings.Settings.Authentication.UserName = "User";
+    settings.Settings.Authentication.Group = "Admin";
+    settings.Settings.Authentication.UserName = "Admin";
     settings.Settings.RangePermissions.HighlightColor = Color.Indigo;
     settings.Settings.RangePermissions.HighlightBracketsColor = Color.Purple;
 
+    settings.Init = (s, e) =>
+    {
+        var rich = s as MVCxRichEdit;
+        rich.CreateDefaultRibbonTabs(false);
+
+        var homeTab = rich.RibbonTabs[1];
+        var clipboardGroup = homeTab.Groups.FirstOrDefault(g => g.Text == "Clipboard");
+        var stylesGroup = homeTab.Groups.FirstOrDefault(x => x.Text == "Styles");
+
+        if (clipboardGroup != null)
+        {
+            var pasteButton = clipboardGroup.Items.FirstOrDefault(item => item.Index == 0);
+            var copyButton = clipboardGroup.Items.FirstOrDefault(t => t.Index == 1);
+            var cutButton = clipboardGroup.Items.FirstOrDefault(r => r.Index == 2);
+
+            clipboardGroup.Items.Remove(pasteButton);
+            clipboardGroup.Items.Remove(copyButton);
+            clipboardGroup.Items.Remove(cutButton);
+        }
+        if (stylesGroup != null)
+        {
+            homeTab.Groups.Remove(stylesGroup);
+        }
+
+        var insertCompsTab = new RibbonTab("Insert Comps");
+        rich.RibbonTabs.Add(insertCompsTab);
+
+        var insertCompsGroup = new RibbonGroup("Comps");
+        insertCompsTab.Groups.Add(insertCompsGroup);
+
+        var insertTableButton = new RibbonButtonItem("Insert Table");
+        insertCompsGroup.Items.Add(insertTableButton);
+        
+        rich.RibbonTabs[0].Visible = true;
+        rich.RibbonTabs[1].Visible = true;
+        rich.RibbonTabs[2].Visible = true;
+        rich.RibbonTabs[3].Visible = true;
+        rich.RibbonTabs[4].Visible = true;
+        rich.RibbonTabs[5].Visible = true;
+        insertCompsTab.Visible = true;
+    };
 
     settings.Settings.Views.ViewType = DevExpress.Web.ASPxRichEdit.RichEditViewType.PrintLayout;
 
