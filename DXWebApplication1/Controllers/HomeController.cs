@@ -11,6 +11,9 @@ using DevExpress.XtraRichEdit;
 using DevExpress.XtraRichEdit.API.Native;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using DevExpress.Web.Internal.XmlProcessor;
+using DevExpress.Web.ASPxRichEdit.Internal;
+using static DevExpress.XtraPrinting.Native.ExportOptionsPropertiesNames;
 
 namespace DXWebApplication1.Controllers
 {
@@ -87,6 +90,7 @@ namespace DXWebApplication1.Controllers
                     return RichEditExtension.Open("RichEdit", documentId, DocumentFormat.OpenXml, () => { return stream; });
                 }
             }
+            
             else if (actioName == "updateProtectedFields")
             {
                 RichEditDocumentServer documentServer = new RichEditDocumentServer();
@@ -119,6 +123,7 @@ namespace DXWebApplication1.Controllers
                     return RichEditExtension.Open("RichEdit", documentId, DocumentFormat.OpenXml, () => { return stream; });
                 }
             }
+            
             else if (actioName == "protectSection")
             {
                 RichEditDocumentServer documentServer = new RichEditDocumentServer();
@@ -151,7 +156,146 @@ namespace DXWebApplication1.Controllers
                     return RichEditExtension.Open("RichEdit", documentId, DocumentFormat.OpenXml, () => { return stream; });
                 }
             }
+            
+            else if (actioName == "insertCompTable")
+            {
+                RichEditDocumentServer documentServer1 = new RichEditDocumentServer();
+                documentServer1.LoadDocument(Server.MapPath(@"~/Documents/testDOC1.doc"));
 
+                var doc = documentServer1.Document;
+                var position = doc.Range.End;
+                doc.Fields.Create(position, " DOCVARIABLE TABLE ");
+
+                documentServer1.CalculateDocumentVariable += (s, e) =>
+                {
+                    if (e.VariableName == "TABLE")
+                    {
+                        RichEditDocumentServer documentServer = new RichEditDocumentServer();
+                        Table table = documentServer.Document.Tables.Create(documentServer.Document.Range.Start, 2, 4);
+
+                        documentServer.Document.InsertSingleLineText(table.Rows[0].Cells[0].Range.Start, "ID");
+                        documentServer.Document.InsertSingleLineText(table.Rows[0].Cells[1].Range.Start, "Photo");
+                        documentServer.Document.InsertSingleLineText(table.Rows[0].Cells[2].Range.Start, "Customer Info");
+                        documentServer.Document.InsertSingleLineText(table.Rows[0].Cells[3].Range.Start, "Rentals");
+
+                        for (int i = 1; i < 2; i++)
+                        {
+                            documentServer.Document.InsertSingleLineText(table.Rows[i].Cells[0].Range.Start, $"ID {i}");
+
+                            string customerInfo = $"Customer Info {i}\n" +
+                                                  $"Address: 123 Main St, Apt {i}\n" +
+                                                  $"Phone: (555) 123-456{i}\n" +
+                                                  $"Email: customer{i}@example.com";
+                            documentServer.Document.InsertText(table.Rows[i].Cells[2].Range.Start, customerInfo);
+
+                            string rentalsInfo = $"Rental {i}\n" +
+                                                 $"Date: 01/01/202{i}\n" +
+                                                 $"Amount: ${100 * i}\n" +
+                                                 $"Status: Active";
+                            documentServer.Document.InsertText(table.Rows[i].Cells[3].Range.Start, rentalsInfo);
+                        }
+
+                        for (int i = 1; i < 2; i++)
+                        {
+                            string imagePath = System.Web.Hosting.HostingEnvironment.MapPath($"~/Content/logo.png");
+                            if (System.IO.File.Exists(imagePath))
+                            {
+                                using (System.IO.FileStream imageStream = new System.IO.FileStream(imagePath, System.IO.FileMode.Open))
+                                {
+                                    var documentImageSource = DevExpress.XtraRichEdit.API.Native.DocumentImageSource.FromStream(imageStream);
+                                    documentServer.Document.Images.Insert(table.Rows[i].Cells[1].Range.Start, documentImageSource);
+                                }
+                            }
+                        }
+
+                        e.Value = documentServer.Document;
+                        e.Handled = true;
+                    }
+                };
+
+                documentServer1.Document.UpdateAllFields();
+                documentServer1.Document.UnlinkAllFields();
+                Document document = doc;
+
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    documentServer1.SaveDocument(stream, DocumentFormat.OpenXml);
+                    stream.Position = 0;
+
+                    DocumentManager.CloseDocument(documentId);
+                    return RichEditExtension.Open("RichEdit", documentId, DocumentFormat.OpenXml, () => { return stream; });
+                }
+            }
+            
+            else if(actioName == "insertComp")
+            {
+                RichEditDocumentServer documentServer2 = new RichEditDocumentServer();
+                documentServer2.LoadDocument(Server.MapPath(@"~/Documents/testDOC1.doc"));
+
+                var doc = documentServer2.Document;
+                var position = doc.Range.Start;
+                doc.Fields.Create(position, " DOCVARIABLE COMP1 ");
+                doc.Fields.Create(position, " DOCVARIABLE COMP2 ");
+                    
+                documentServer2.CalculateDocumentVariable += (s, e) =>
+                {
+                    if (e.VariableName == "COMP1")
+                    {
+                        RichEditDocumentServer documentServer = new RichEditDocumentServer();
+                        Table table = documentServer.Document.Tables.Create(documentServer.Document.Range.Start, 2, 1);
+
+                        doc.InsertSection(doc.Range.Start);
+                        doc.Sections[doc.Sections.Count - 1].StartType = SectionStartType.NextPage;
+
+                        documentServer.Document.InsertSingleLineText(table.Rows[0].Cells[0].Range.Start, "Customer Info");
+
+                            string customerInfo = $"Comp 1 info;\n" +
+                                                  $"Address Comp2: 123 Main St, Apt \n" +
+                                                  $"Phone: (555) 123-456\n" +
+                                                  $"Email: customer@example.com";
+                            documentServer.Document.InsertText(table.Rows[1].Cells[0].Range.Start, customerInfo);
+                        
+                        e.Value = documentServer.Document;
+                        e.Handled = true;
+                    }
+
+                    else if(e.VariableName == "COMP2")
+                    {
+                        // Вставка розриву сторінки перед вставкою поля COMP2
+                        doc.InsertSection(doc.Range.End);
+                        doc.Sections[doc.Sections.Count - 1].StartType = SectionStartType.NextPage;
+
+                        RichEditDocumentServer documentServer = new RichEditDocumentServer();
+                        Table table = documentServer.Document.Tables.Create(documentServer.Document.Range.Start, 2, 1);
+
+                        documentServer.Document.InsertSingleLineText(table.Rows[0].Cells[0].Range.Start, "Customer Info");
+
+                            string customerInfo = $"Comp 2 info; 2\n" +
+                                                  $"Address Comp2: 123 Main St, Apt \n" +
+                                                  $"Phone: (555) 123-456\n" +
+                                                  $"Email: customer2@example.com";
+                            documentServer.Document.InsertText(table.Rows[1].Cells[0].Range.Start, customerInfo);
+
+                        e.Value = documentServer.Document;
+                        e.Handled = true;
+                    }
+                };
+
+                documentServer2.Document.UpdateAllFields();
+                //documentServer2.Document.UnlinkAllFields();
+                Document document = doc;
+
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    documentServer2.SaveDocument(stream, DocumentFormat.OpenXml);
+                    stream.Position = 0;
+
+                    DocumentManager.CloseDocument(documentId);
+                    return RichEditExtension.Open("RichEdit", documentId, DocumentFormat.OpenXml, () => { return stream; });
+                }
+
+            }
+            
             return PartialView("_RichEditPartial");
         }
         public void ProtectDocvariableFieldsInDocument(Document document)
@@ -208,8 +352,7 @@ namespace DXWebApplication1.Controllers
             document.EndUpdateRangePermissions(rangePermissions);
             document.Protect("123");
         }
-
-        
+    
         public IEnumerable<RangePermission> CreateRangePermissions(DocumentRange documentRange, string groupName, string userName)
         {
             List<RangePermission> rangeList = new List<RangePermission>();

@@ -50,9 +50,16 @@
         var insertCompsGroup = new RibbonGroup("Comps");
         insertCompsTab.Groups.Add(insertCompsGroup);
 
-        var insertTableButton = new RibbonButtonItem("Insert Table");
+        DevExpress.Web.RibbonButtonItem insertTableButton = new DevExpress.Web.RibbonButtonItem("insertTableButton", "Insert Table");
+        insertTableButton.ClientEnabled = true;
         insertCompsGroup.Items.Add(insertTableButton);
-        
+
+
+        DevExpress.Web.RibbonButtonItem insertCompButton = new DevExpress.Web.RibbonButtonItem("insertCompButton", "Insert Comp");
+        insertCompButton.ClientEnabled = true;
+        insertCompsGroup.Items.Add(insertCompButton);
+
+
         rich.RibbonTabs[0].Visible = true;
         rich.RibbonTabs[1].Visible = true;
         rich.RibbonTabs[2].Visible = true;
@@ -62,23 +69,11 @@
         insertCompsTab.Visible = true;
     };
 
+    settings.ClientSideEvents.CustomCommandExecuted = "OnCustomCommand";
+
     settings.Settings.Views.ViewType = DevExpress.Web.ASPxRichEdit.RichEditViewType.PrintLayout;
 
-    settings.CalculateDocumentVariable = (send, evargs) =>
-    {
-        MVCxRichEdit richEdit = send as MVCxRichEdit;
-        if (evargs.VariableName == "SomeField1")
-        {
-            evargs.Value = "CALCULATED FIELD 1";
-            evargs.Handled = true;
-        }
-        if (evargs.VariableName == "SomeField2")
-        {
-            evargs.Value = "CALCULATED FIELD 2";
-            evargs.Handled = true;
-        }
-    };
     settings.ClientSideEvents.Init = "function(s, e) {onInit(s, e); }"; ;
 
     //settings.ClientSideEvents.DocumentLoaded = "function(s, e) {onDocumentLoaded(s, e); }";
-}).Open(Server.MapPath("~\\Documents\\testDOC1.doc")).GetHtml()
+}).Open(Server.MapPath("~\\Documents\\document8.docx")).GetHtml()
